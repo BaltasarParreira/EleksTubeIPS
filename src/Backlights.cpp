@@ -97,61 +97,20 @@ void Backlights::rainbowPattern() {
 
 void Backlights::auroraPattern()
 {
-  // Divide by 3 to spread it out some, so the whole rainbow isn't displayed at once.
-  // TODO Make this /3 a parameter
-  const uint16_t phase_per_digit = (max_phase / NUM_LEDS) / 3;
+  const uint16_t hue_per_led = getHuePerLed().value; //(256/NUM_LEDS)/2;
 
-  // Rainbow roatation speed is determined by breath_per_min, so it can be adjusted by the user.  Divide by 10 to get it into a reasonable range.
-  uint16_t duration = uint16_t(round(getBreathPerMin() * 1000));
-  uint16_t phase = uint16_t(round(float(millis() % duration) / duration * max_phase));
-
-  float val = getLEDValue();
-
-  val = map(val, 1, 255, 35, 255);
-  val = val / 255;
-  val = round(val * 1000.0) / 1000.0;
-
-  for (uint8_t digit=0; digit < NUM_LEDS; digit++)
-  {
-    // Shift the phase for this LED.
-    uint16_t my_phase = (phase + digit * phase_per_digit) % max_phase;
-    setPixelColor2(digit, phaseToColor(my_phase, val));
-  }
+  uint16_t hue = millis()/((21-getBreathPerMin().value) * 10) % 256;  
   
+  uint16_t val = getLEDValue();
+
+  val = val * brightness / 255;
+
+  for (uint8_t digit=0; digit < NUM_LEDS; digit++) {
+    // Shift the hue for this LED.
+    uint16_t digitHue = (hue + digit*hue_per_led) % 256;
+ 		setPixelColor(digit, digitHue, getLEDSaturation(), val);
+  }
   show();
-}
-
-uint8_t Backlights::phaseToIntensity(uint16_t phase)
-{
-  uint16_t color = 0;
-  if (phase <= 255)
-  {
-    // Ramping up
-    color = phase;
-  }
-  else if (phase <= 511)
-  {
-    // Ramping down
-    color = 511 - phase;
-  }
-  else
-  {
-    // Off
-    color = 0;
-  }
-  if (color > 255)
-  {
-    // TODO: Trigger ERROR STATE, bug in code.
-  }
-  return uint8_t(color % 256);
-}
-
-uint32_t Backlights::phaseToColor(uint16_t phase, float val)
-{
-  uint8_t red = phaseToIntensity(phase) * val;
-  uint8_t green = phaseToIntensity((phase + 256) % max_phase) * val;
-  uint8_t blue = phaseToIntensity((phase + 512) % max_phase) * val;
-  return (uint32_t(red) << 16 | uint32_t(green) << 8 | uint32_t(blue));
 }
 
 void Backlights::fill(byte hue, byte sat, byte val, byte start, byte end) {
@@ -172,11 +131,6 @@ void Backlights::show() {
 
 void Backlights::setPixelColor(uint8_t digit, uint8_t hue, uint8_t sat, uint8_t val) {
     RgbColor color = HsbColor((byte)(hue)/256.0, (byte)(sat)/256.0, val/256.0);
-    pixels.SetPixelColor(digit, colorGamma.Correct(color));
-}
-
-void Backlights::setPixelColor2(uint8_t digit, uint32_t color2) {
-    RgbColor color = RgbColor((color2 >> 16) & 0xFF, (color2 >> 8) & 0xFF, color2 & 0xFF);
     pixels.SetPixelColor(digit, colorGamma.Correct(color));
 }
 
