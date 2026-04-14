@@ -34,6 +34,7 @@ public:
   static ByteConfigItem& getLEDValue() { static ByteConfigItem led_value("led_value", 255); return led_value; }
   static ByteConfigItem& getLEDSaturation() { static ByteConfigItem led_saturation("led_saturation", 255); return led_saturation; }
   static ByteConfigItem& getBreathPerMin() { static ByteConfigItem breath_per_min("breath_per_min", 10); return breath_per_min; }
+  static ByteConfigItem& getHuePerLed() { static ByteConfigItem hue_per_led("hue_per_led", 10); return hue_per_led; }
 
   static boolean backlightState;
   static byte backlightHue;
@@ -53,11 +54,6 @@ public:
   void setOn(bool on) { off = !on; }
   void setBrightness(byte brightness) { this->brightness = brightness; }
 
-  // Helper methods
-  uint32_t phaseToColor(uint16_t phase, float val);
-  uint8_t phaseToIntensity(uint16_t phase);
-  const uint16_t max_phase = 768;  // 256 up, 256 down, 256 off
-
 private:
   bool off;
   byte brightness = 255;
@@ -75,7 +71,6 @@ private:
   void show();
   void clear();
   void setPixelColor(uint8_t digit, uint8_t hue, uint8_t val, uint8_t sat);
-  void setPixelColor2(uint8_t digit, uint32_t color);
 
   const uint32_t test_ms_delay = 250; 
 
